@@ -3,6 +3,7 @@ import { HomeComponent } from './pages/home/home.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
+  { path: 'mentor-dashboard', loadComponent: () => import('./pages/mentor-dashboard/mentor-dashboard.component').then(m => m.MentorDashboardComponent) },
   { path: 'courses', loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent) },
   { path: 'signup', loadComponent: () => import('./pages/auth/signup/signup.component').then(m => m.SignupComponent) },
   { path: 'login', loadComponent: () => import('./pages/auth/login/login.component').then(m => m.LoginComponent) },

@@ -4,29 +4,11 @@
       <a routerLink="/" class="logo">
         <span class="logo-text">HyperHive</span>
       </a>
-      <nav class="nav-menu">
+      <nav class="nav-menu" *ngIf="isAuthenticated">
         <a routerLink="/courses" class="nav-link">Courses</a>
         <a routerLink="/categories" class="nav-link">Categories</a>
         <a routerLink="/instructors" class="nav-link">Instructors</a>
       </nav>
-    </div>
-    
-    <div class="header-center">
-      <form class="search-form" (ngSubmit)="onSearch()">
-        <input 
-          type="text" 
-          class="search-input" 
-          placeholder="Search for anything"
-          [(ngModel)]="searchQuery"
-          name="searchQuery"
-        />
-        <button type="submit" class="search-button">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
-          </svg>
-        </button>
-      </form>
     </div>
 
     <div class="header-right">
@@ -60,10 +42,12 @@
 
   <!-- Mobile Menu -->
   <div class="mobile-menu" [class.open]="isMenuOpen">
-    <a routerLink="/courses" class="mobile-nav-link">Courses</a>
-    <a routerLink="/categories" class="mobile-nav-link">Categories</a>
-    <a routerLink="/instructors" class="mobile-nav-link">Instructors</a>
-    <a routerLink="/teach" class="mobile-nav-link">Teach on HyperHive</a>
+    <div *ngIf="isAuthenticated">
+      <a routerLink="/courses" class="mobile-nav-link">Courses</a>
+      <a routerLink="/categories" class="mobile-nav-link">Categories</a>
+      <a routerLink="/instructors" class="mobile-nav-link">Instructors</a>
+      <a routerLink="/teach" class="mobile-nav-link">Teach on HyperHive</a>
+    </div>
     <div class="mobile-menu-actions">
       <!-- Authenticated User -->
       <div *ngIf="isAuthenticated" class="mobile-user-info">

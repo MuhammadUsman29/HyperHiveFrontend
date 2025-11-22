@@ -1,0 +1,273 @@
+<app-header></app-header>
+
+<div class="dashboard-container">
+  <div class="dashboard-content">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+      <div class="header-left">
+        <h1 class="page-title">Mentor Dashboard</h1>
+        <p class="page-subtitle">Monitor learner progress and performance</p>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-secondary" (click)="refreshDashboard()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading dashboard data...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <div class="alert alert-error">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        {{ errorMessage }}
+      </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-grid" *ngIf="!isLoading && !errorMessage">
+      <!-- Learner Profile Card -->
+      <div class="dashboard-card profile-card" *ngIf="learnerData">
+        <div class="card-header">
+          <div class="profile-avatar">{{ learnerData.name?.charAt(0) || 'L' }}</div>
+          <div class="profile-info">
+            <h2 class="learner-name">{{ learnerData.name }}</h2>
+            <p class="learner-role">{{ learnerData.position }} • {{ learnerData.department }}</p>
+            <p class="learner-email">{{ learnerData.email }}</p>
+          </div>
+        </div>
+        <div class="profile-stats">
+          <div class="stat-item">
+            <span class="stat-label">Member Since</span>
+            <span class="stat-value">{{ formatDate(learnerData.joinedDate) }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Experience</span>
+            <span class="stat-value">{{ learnerData.aiProfile?.yearsOfExperience || 'N/A' }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Learning Hours/Week</span>
+            <span class="stat-value">{{ learnerData.aiProfile?.availableHoursPerWeek || 0 }}h</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall Progress Card -->
+      <div class="dashboard-card progress-card">
+        <h3 class="card-title">📈 Overall Progress</h3>
+        <div class="progress-circle-container">
+          <div class="progress-circle" [class]="'progress-' + getProgressColor(overallProgress)">
+            <svg viewBox="0 0 100 100">
+              <circle class="progress-bg" cx="50" cy="50" r="45"></circle>
+              <circle class="progress-fill" cx="50" cy="50" r="45" 
+                      [style.stroke-dashoffset]="283 - (283 * overallProgress / 100)"></circle>
+            </svg>
+            <div class="progress-text">
+              <span class="progress-value">{{ overallProgress }}%</span>
+              <span class="progress-label">Complete</span>
+            </div>
+          </div>
+        </div>
+        <div class="progress-details">
+          <div class="detail-item">
+            <span class="detail-label">Milestones</span>
+            <span class="detail-value">{{ completedMilestones }}/{{ totalMilestones }}</span>
+          </div>
+          <div class="detail-item" *ngIf="competencyProfile">
+            <span class="detail-label">Validation Score</span>
+            <span class="detail-value">{{ competencyProfile.validationScore }}/100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Competency Score Card -->
+      <div class="dashboard-card competency-card" *ngIf="competencyProfile">
+        <h3 class="card-title">🎯 Competency Validation</h3>
+        <div class="score-display">
+          <div class="score-circle" [class]="'score-' + getValidationScoreColor(competencyProfile.validationScore)">
+            <span class="score-value">{{ competencyProfile.validationScore }}</span>
+            <span class="score-label">Score</span>
+          </div>
+          <div class="validation-level">
+            <span class="level-badge" [class]="'badge-' + getValidationScoreColor(competencyProfile.validationScore)">
+              {{ competencyProfile.validationLevel }}
+            </span>
+          </div>
+        </div>
+        <div class="competency-stats">
+          <div class="stat-row">
+            <span class="stat-name">Skills Match</span>
+            <span class="stat-number">{{ competencyProfile.skillsComparison?.matchPercentage || 0 }}%</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-name">GitHub Repos</span>
+            <span class="stat-number">{{ competencyProfile.gitHubProfile?.publicRepos || 0 }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-name">Total Commits</span>
+            <span class="stat-number">{{ competencyProfile.gitHubProfile?.totalCommits || 0 }}</span>
+          </div>
+        </div>
+        <button class="btn btn-link" (click)="navigateToCompetency()">View Full Report →</button>
+      </div>
+
+      <!-- Growth Plan Overview -->
+      <div class="dashboard-card growth-card" *ngIf="growthPlan">
+        <h3 class="card-title">🚀 Growth Plan</h3>
+        <div class="growth-overview">
+          <div class="growth-progression">
+            <span class="current-level-badge">{{ growthPlan.currentLevel }}</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <span class="target-level-badge">{{ growthPlan.targetLevel }}</span>
+          </div>
+          <div class="duration-info">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            {{ growthPlan.estimatedDurationMonths }} months plan
+          </div>
+        </div>
+        <div class="phases-summary">
+          <span class="phases-count">{{ growthPlan.learningPhases?.length || 0 }} Learning Phases</span>
+          <span class="resources-count">{{ growthPlan.recommendedResources?.length || 0 }} Resources</span>
+        </div>
+        <button class="btn btn-link" (click)="navigateToGrowthPlan()">View Full Plan →</button>
+      </div>
+
+      <!-- High Priority Skills -->
+      <div class="dashboard-card full-width skills-card">
+        <h3 class="card-title">🎓 High Priority Skills to Develop</h3>
+        <div class="skills-grid">
+          <div class="skill-item" *ngFor="let skill of getHighPrioritySkills()">
+            <div class="skill-header">
+              <h4 class="skill-name">{{ skill.skillName }}</h4>
+              <span class="priority-badge" [class]="getPriorityColor(skill.priority)">{{ skill.priority }}</span>
+            </div>
+            <div class="skill-progress">
+              <div class="progress-labels">
+                <span class="progress-label-item">{{ skill.currentProficiency }}</span>
+                <span class="progress-label-item target">→ {{ skill.targetProficiency }}</span>
+              </div>
+            </div>
+            <p class="skill-reasoning">{{ skill.reasoning }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Learning Phase -->
+      <div class="dashboard-card phase-card" *ngIf="getCurrentPhase() as currentPhase">
+        <h3 class="card-title">📚 Current Learning Phase</h3>
+        <div class="current-phase">
+          <div class="phase-number-badge">Phase {{ currentPhase.phaseNumber }}</div>
+          <h4 class="phase-title">{{ currentPhase.title }}</h4>
+          <p class="phase-description">{{ currentPhase.description }}</p>
+          <div class="phase-duration">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            {{ currentPhase.durationWeeks }} weeks
+          </div>
+          <div class="phase-skills">
+            <span class="skill-tag" *ngFor="let skill of currentPhase.skillsToCover">{{ skill }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Phases -->
+      <div class="dashboard-card upcoming-card">
+        <h3 class="card-title">⏭️ Upcoming Phases</h3>
+        <div class="upcoming-list">
+          <div class="upcoming-item" *ngFor="let phase of getUpcomingPhases()">
+            <div class="phase-number-small">{{ phase.phaseNumber }}</div>
+            <div class="phase-info">
+              <h5 class="phase-name">{{ phase.title }}</h5>
+              <span class="phase-duration-small">{{ phase.durationWeeks }} weeks</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Analysis -->
+      <div class="dashboard-card full-width analysis-card" *ngIf="competencyProfile && competencyProfile.aiAnalysis">
+        <h3 class="card-title">🤖 AI Analysis & Insights</h3>
+        <p class="analysis-text">{{ competencyProfile.aiAnalysis }}</p>
+      </div>
+
+      <!-- Recommended Resources -->
+      <div class="dashboard-card full-width resources-card">
+        <h3 class="card-title">📖 Recommended Resources</h3>
+        <div class="resources-list">
+          <div class="resource-item" *ngFor="let resource of getRecentRecommendations()">
+            <div class="resource-icon">📚</div>
+            <div class="resource-content">
+              <h4 class="resource-title">
+                <a [href]="resource.url" target="_blank" rel="noopener noreferrer">
+                  {{ resource.title }}
+                </a>
+              </h4>
+              <p class="resource-description">{{ resource.description }}</p>
+              <div class="resource-meta">
+                <span class="meta-badge">{{ resource.provider }}</span>
+                <span class="meta-badge">{{ resource.difficulty }}</span>
+                <span class="meta-badge">{{ resource.estimatedHours }}h</span>
+                <span class="meta-badge" [class.free]="resource.isFree">{{ resource.isFree ? 'Free' : 'Paid' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-link" (click)="navigateToGrowthPlan()">View All Resources →</button>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="dashboard-card actions-card">
+        <h3 class="card-title">⚡ Quick Actions</h3>
+        <div class="actions-list">
+          <button class="action-btn" (click)="navigateToQuiz()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 11l3 3L22 4"></path>
+              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+            </svg>
+            Take Quiz
+          </button>
+          <button class="action-btn" (click)="navigateToSkillsetEvaluation()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            Update Skills
+          </button>
+          <button class="action-btn" (click)="navigateToGrowthPlan()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M2 12h20"></path>
+            </svg>
+            View Growth Plan
+          </button>
+          <button class="action-btn" (click)="navigateToCompetency()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            Check Competency
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
