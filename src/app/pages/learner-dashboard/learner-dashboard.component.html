@@ -1,0 +1,314 @@
+<app-header></app-header>
+
+<div class="dashboard-container">
+  <div class="dashboard-content">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+      <div class="header-left">
+        <h1 class="page-title">My Learning Dashboard</h1>
+        <p class="page-subtitle">Track your progress and daily learning activities</p>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-secondary" (click)="refreshDashboard()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading your dashboard...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <div class="alert alert-error">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        {{ errorMessage }}
+      </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-grid" *ngIf="!isLoading && !errorMessage">
+      <!-- Profile Card -->
+      <div class="dashboard-card profile-card" *ngIf="learnerData">
+        <div class="card-header-profile">
+          <div class="profile-avatar">{{ learnerData.name?.charAt(0) || 'L' }}</div>
+          <div class="profile-info">
+            <h2 class="learner-name">{{ learnerData.name }}</h2>
+            <p class="learner-role">{{ learnerData.position }} • {{ learnerData.department }}</p>
+            <p class="learner-email">{{ learnerData.email }}</p>
+          </div>
+        </div>
+        <div class="profile-stats">
+          <div class="stat-item">
+            <span class="stat-label">Member Since</span>
+            <span class="stat-value">{{ formatDate(learnerData.joinedDate) }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Experience</span>
+            <span class="stat-value">{{ learnerData.aiProfile?.yearsOfExperience || 'N/A' }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Learning Hours/Week</span>
+            <span class="stat-value">{{ learnerData.aiProfile?.availableHoursPerWeek || 0 }}h</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall Progress Card -->
+      <div class="dashboard-card progress-card">
+        <h3 class="card-title">📈 Overall Progress</h3>
+        <div class="progress-circle-container">
+          <div class="progress-circle" [class]="'progress-' + getProgressColor(overallProgress)">
+            <svg viewBox="0 0 100 100">
+              <circle class="progress-bg" cx="50" cy="50" r="45"></circle>
+              <circle class="progress-fill" cx="50" cy="50" r="45" 
+                      [style.stroke-dashoffset]="283 - (283 * overallProgress / 100)"></circle>
+            </svg>
+            <div class="progress-text">
+              <span class="progress-value">{{ overallProgress }}%</span>
+              <span class="progress-label">Complete</span>
+            </div>
+          </div>
+        </div>
+        <div class="progress-details">
+          <div class="detail-item">
+            <span class="detail-label">Milestones</span>
+            <span class="detail-value">{{ completedMilestones }}/{{ totalMilestones }}</span>
+          </div>
+          <div class="detail-item" *ngIf="competencyProfile">
+            <span class="detail-label">Validation Score</span>
+            <span class="detail-value">{{ competencyProfile.validationScore }}/100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's Learning Card -->
+      <div class="dashboard-card learning-card today-card" *ngIf="todayLearning">
+        <div class="card-header-learning">
+          <div>
+            <h3 class="card-title">📅 {{ todayLearning.day }}</h3>
+            <p class="card-date">{{ todayLearning.date }}</p>
+          </div>
+          <div class="learning-hours">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            {{ todayLearning.estimatedHours }}h
+          </div>
+        </div>
+        <div class="learning-progress">
+          <div class="progress-bar">
+            <div class="progress-fill-bar" [style.width.%]="getTodayProgress()"></div>
+          </div>
+          <span class="progress-text-sm">{{ getTodayProgress() }}% completed</span>
+        </div>
+        <div class="learning-tasks">
+          <h4 class="tasks-title">Today's Tasks</h4>
+          <ul class="task-list">
+            <li *ngFor="let task of todayLearning.tasks" class="task-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+              </svg>
+              {{ task }}
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tomorrow's Learning Card -->
+      <div class="dashboard-card learning-card tomorrow-card" *ngIf="tomorrowLearning">
+        <div class="card-header-learning">
+          <div>
+            <h3 class="card-title">📆 {{ tomorrowLearning.day }}</h3>
+            <p class="card-date">{{ tomorrowLearning.date }}</p>
+          </div>
+          <div class="learning-hours">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            {{ tomorrowLearning.estimatedHours }}h
+          </div>
+        </div>
+        <div class="learning-tasks">
+          <h4 class="tasks-title">Planned Tasks</h4>
+          <ul class="task-list">
+            <li *ngFor="let task of tomorrowLearning.tasks" class="task-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+              </svg>
+              {{ task }}
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Current Learning Phase Card -->
+      <div class="dashboard-card phase-card full-width" *ngIf="getCurrentPhase()">
+        <h3 class="card-title">🎯 Current Learning Phase</h3>
+        <div class="phase-content">
+          <div class="phase-header">
+            <div class="phase-number">Phase {{ getCurrentPhase().phaseNumber }}</div>
+            <div class="phase-info">
+              <h4 class="phase-title">{{ getCurrentPhase().title }}</h4>
+              <p class="phase-description">{{ getCurrentPhase().description }}</p>
+            </div>
+          </div>
+          <div class="phase-meta">
+            <span class="meta-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              {{ getCurrentPhase().durationWeeks }} weeks
+            </span>
+            <span class="meta-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+              {{ getCurrentPhase().skillsToCover.length }} skills
+            </span>
+          </div>
+          <div class="phase-progress-section">
+            <div class="phase-progress-bar">
+              <div class="phase-progress-fill" [style.width.%]="getPhaseProgressPercentage()"></div>
+            </div>
+            <span class="phase-progress-text">{{ getPhaseProgressPercentage() }}% completed</span>
+          </div>
+          <div class="phase-details">
+            <div class="detail-section">
+              <h5 class="detail-title">Skills to Cover</h5>
+              <div class="skill-tags">
+                <span class="skill-tag" *ngFor="let skill of getCurrentPhase().skillsToCover">{{ skill }}</span>
+              </div>
+            </div>
+            <div class="detail-section">
+              <h5 class="detail-title">Learning Objectives</h5>
+              <ul class="objective-list">
+                <li *ngFor="let objective of getCurrentPhase().learningObjectives.slice(0, 3)">{{ objective }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Competency Score Card -->
+      <div class="dashboard-card competency-card" *ngIf="competencyProfile">
+        <h3 class="card-title">🎯 Competency Validation</h3>
+        <div class="score-display">
+          <div class="score-circle" [class]="'score-' + getValidationScoreColor(competencyProfile.validationScore)">
+            <span class="score-value">{{ competencyProfile.validationScore }}</span>
+            <span class="score-max">/100</span>
+          </div>
+          <div class="score-info">
+            <p class="score-level">{{ competencyProfile.validationLevel }}</p>
+            <p class="score-subtitle">Validation Level</p>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" (click)="navigateToCompetency()">
+          View Full Report
+        </button>
+      </div>
+
+      <!-- High Priority Skills Card -->
+      <div class="dashboard-card skills-card">
+        <h3 class="card-title">🔥 High Priority Skills</h3>
+        <div class="skills-list">
+          <div class="skill-item" *ngFor="let skill of getHighPrioritySkills()">
+            <div class="skill-header">
+              <span class="skill-name">{{ skill.skillName }}</span>
+              <span class="priority-badge" [class]="getPriorityColor(skill.priority)">
+                {{ skill.priority }}
+              </span>
+            </div>
+            <p class="skill-reasoning">{{ skill.reasoning }}</p>
+            <div class="skill-levels">
+              <span class="current-level">Current: {{ skill.currentProficiency }}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+              <span class="target-level">Target: {{ skill.targetProficiency }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommended Resources Card -->
+      <div class="dashboard-card resources-card full-width">
+        <h3 class="card-title">📚 Recommended Resources</h3>
+        <div class="resources-grid">
+          <div class="resource-item" *ngFor="let resource of getRecentRecommendations()">
+            <div class="resource-header">
+              <h4 class="resource-title">{{ resource.title }}</h4>
+              <span class="resource-badge free" *ngIf="resource.isFree">Free</span>
+              <span class="resource-badge paid" *ngIf="!resource.isFree">Paid</span>
+            </div>
+            <p class="resource-provider">{{ resource.provider }}</p>
+            <p class="resource-description">{{ resource.description }}</p>
+            <div class="resource-meta">
+              <span class="meta-tag">{{ resource.type }}</span>
+              <span class="meta-tag">{{ resource.difficulty }}</span>
+              <span class="meta-tag">{{ resource.estimatedHours }}h</span>
+            </div>
+            <a [href]="resource.url" target="_blank" class="btn btn-secondary btn-sm">
+              Start Learning
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions Card -->
+      <div class="dashboard-card actions-card full-width">
+        <h3 class="card-title">⚡ Quick Actions</h3>
+        <div class="actions-grid">
+          <button class="action-btn" (click)="navigateToQuiz()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 11l3 3L22 4"></path>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            <span>Take Quiz</span>
+          </button>
+          <button class="action-btn" (click)="navigateToGrowthPlan()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+            <span>View Growth Plan</span>
+          </button>
+          <button class="action-btn" (click)="navigateToSkillsetEvaluation()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>Update Skills</span>
+          </button>
+          <button class="action-btn" (click)="navigateToCompetency()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            <span>View Analytics</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

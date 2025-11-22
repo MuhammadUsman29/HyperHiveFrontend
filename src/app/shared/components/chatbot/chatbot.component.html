@@ -1,0 +1,84 @@
+<div class="chatbot-popup" [class.minimized]="isMinimized">
+  <!-- Chat Header -->
+  <div class="chat-header">
+    <div class="header-left">
+      <div class="bot-avatar">🤖</div>
+      <div class="header-info">
+        <h3 class="bot-name">AI Assistant</h3>
+        <span class="bot-status">Online</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" (click)="toggleMinimize()" title="Minimize">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+      <button class="icon-btn" (click)="clearChat()" title="Clear chat">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+      </button>
+      <button class="icon-btn close-btn" (click)="closeChat()" title="Close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Chat Messages -->
+  <div class="chat-messages" *ngIf="!isMinimized">
+    <div 
+      *ngFor="let msg of messages" 
+      class="message-wrapper"
+      [class.user-message]="msg.isUser"
+      [class.bot-message]="!msg.isUser">
+      <div class="message-avatar" *ngIf="!msg.isUser">🤖</div>
+      <div class="message-bubble">
+        <div class="message-text">{{ msg.message }}</div>
+        <div class="message-time">{{ formatTime(msg.timestamp) }}</div>
+      </div>
+      <div class="message-avatar user-avatar" *ngIf="msg.isUser">👤</div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div class="message-wrapper bot-message" *ngIf="isLoading">
+      <div class="message-avatar">🤖</div>
+      <div class="message-bubble loading-bubble">
+        <div class="typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Input -->
+  <div class="chat-input" *ngIf="!isMinimized">
+    <div class="input-wrapper">
+      <textarea
+        [(ngModel)]="userMessage"
+        (keypress)="onKeyPress($event)"
+        placeholder="Type your message..."
+        rows="1"
+        class="message-input"
+        [disabled]="isLoading"
+      ></textarea>
+      <button 
+        class="send-btn"
+        (click)="sendMessage()"
+        [disabled]="!userMessage.trim() || isLoading"
+        title="Send message">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+    <div class="input-hint">Press Enter to send, Shift+Enter for new line</div>
+  </div>
+</div>

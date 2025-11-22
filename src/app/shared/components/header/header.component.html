@@ -5,11 +5,20 @@
         <span class="logo-text">HyperHive</span>
       </a>
       <nav class="nav-menu" *ngIf="isAuthenticated">
+        <a routerLink="/learner-dashboard" class="nav-link">My Dashboard</a>
         <a routerLink="/mentor-dashboard" class="nav-link">Mentor Dashboard</a>
       </nav>
     </div>
 
     <div class="header-right">
+      <!-- Chatbot Button -->
+      <button class="btn btn-chat" (click)="toggleChatbot()" title="Open AI Assistant" *ngIf="isAuthenticated">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span class="chat-label">AI Assistant</span>
+      </button>
+      
       <!-- Authenticated User -->
       <div class="user-menu" *ngIf="isAuthenticated">
         <span class="user-name" *ngIf="userName">{{ userName }}</span>
@@ -33,7 +42,14 @@
   <!-- Mobile Menu -->
   <div class="mobile-menu" [class.open]="isMenuOpen">
     <div *ngIf="isAuthenticated">
+      <a routerLink="/learner-dashboard" class="mobile-nav-link">My Dashboard</a>
       <a routerLink="/mentor-dashboard" class="mobile-nav-link">Mentor Dashboard</a>
+      <button class="mobile-nav-link chat-mobile-btn" (click)="toggleChatbot()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        AI Assistant
+      </button>
     </div>
     <div class="mobile-menu-actions">
       <!-- Authenticated User -->
@@ -49,4 +65,7 @@
     </div>
   </div>
 </header>
+
+<!-- Chatbot Popup -->
+<app-chatbot *ngIf="isChatbotOpen" (close)="closeChatbot()"></app-chatbot>
 

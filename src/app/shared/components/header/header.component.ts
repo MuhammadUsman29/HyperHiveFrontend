@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { ChatbotComponent } from '../chatbot/chatbot.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ChatbotComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
 })
@@ -15,6 +16,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMenuOpen: boolean = false;
   isAuthenticated: boolean = false;
   userName: string = '';
+  isChatbotOpen: boolean = false;
   private routerSubscription?: Subscription;
 
   constructor(
@@ -68,6 +70,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.isMenuOpen = false;
     this.isAuthenticated = false;
     this.userName = '';
+  }
+
+  toggleChatbot() {
+    this.isChatbotOpen = !this.isChatbotOpen;
+  }
+
+  closeChatbot() {
+    this.isChatbotOpen = false;
   }
 }
 
