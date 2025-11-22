@@ -41,6 +41,10 @@ export class SkillsetEvaluationComponent implements OnInit, OnDestroy {
   errorMessage = '';
   successMessage = '';
   private navigationTimeout: any = null;
+  
+  // Track if we're editing existing data or creating new
+  isEditMode = false;
+  existingLearnerId: number | null = null;
 
   currentLevels = ['beginner', 'intermediate', 'advanced'];
   learningStyles = ['hands-on', 'theoretical', 'visual', 'reading', 'mixed'];
@@ -76,7 +80,49 @@ export class SkillsetEvaluationComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Pre-fill name and email from token or stored user info
+    // Load existing learner data
+    this.loadExistingData();
+  }
+
+  loadExistingData() {
+    this.isLoading = true;
+    
+    // Hardcoded learner ID - get from token in real scenario
+    const learnerId = 2;
+    
+    this.learnersService.getLearnerById(learnerId).subscribe({
+      next: (data) => {
+        console.log('✅ Existing learner data loaded:', data);
+        this.isLoading = false;
+        
+        if (data && data.id) {
+          // Data exists - enter edit mode
+          this.isEditMode = true;
+          this.existingLearnerId = data.id;
+          console.log('📝 Edit mode enabled - Learner ID:', this.existingLearnerId);
+          
+          // Populate form with existing data
+          this.populateForm(data);
+        } else {
+          // No existing data, pre-fill name and email from token
+          this.isEditMode = false;
+          this.existingLearnerId = null;
+          console.log('➕ Create mode - No existing data');
+          this.prefillBasicInfo();
+        }
+      },
+      error: (error) => {
+        console.log('⚠️ No existing data found, starting fresh');
+        this.isLoading = false;
+        this.isEditMode = false;
+        this.existingLearnerId = null;
+        // Pre-fill name and email from token
+        this.prefillBasicInfo();
+      }
+    });
+  }
+
+  prefillBasicInfo() {
     const userInfo = this.authService.getUserInfo();
     if (userInfo.name) {
       this.evaluationForm.patchValue({
@@ -87,6 +133,65 @@ export class SkillsetEvaluationComponent implements OnInit, OnDestroy {
       this.evaluationForm.patchValue({
         email: userInfo.email
       });
+    }
+  }
+
+  populateForm(data: any) {
+    // Format the date for the date input (YYYY-MM-DD format)
+    let formattedDate = '';
+    if (data.joinedDate) {
+      const date = new Date(data.joinedDate);
+      formattedDate = date.toISOString().split('T')[0];
+    }
+
+    // Populate basic fields
+    this.evaluationForm.patchValue({
+      name: data.name || '',
+      email: data.email || '',
+      position: data.position || '',
+      department: data.department || '',
+      joinedDate: formattedDate,
+      bio: data.bio || ''
+    });
+
+    // Populate AI Profile arrays
+    if (data.aiProfile) {
+      // Clear existing arrays and populate with data
+      this.populateArray(this.skillsArray, data.aiProfile.skills || [], () => this.createSkillControl());
+      this.populateArray(this.interestsArray, data.aiProfile.interests || [], () => this.createInterestControl());
+      this.populateArray(this.goalsArray, data.aiProfile.goals || [], () => this.createGoalControl());
+      this.populateArray(this.preferredTopicsArray, data.aiProfile.preferredTopics || [], () => this.createTopicControl());
+      this.populateArray(this.weakAreasArray, data.aiProfile.weakAreas || [], () => this.createWeakAreaControl());
+
+      // Populate other AI Profile fields
+      this.evaluationForm.patchValue({
+        aiProfile: {
+          currentLevel: data.aiProfile.currentLevel || 'intermediate',
+          learningStyle: data.aiProfile.learningStyle || 'hands-on',
+          availableHoursPerWeek: data.aiProfile.availableHoursPerWeek || 10,
+          preferredLearningTime: data.aiProfile.preferredLearningTime || 'evening',
+          yearsOfExperience: data.aiProfile.yearsOfExperience || ''
+        }
+      });
+    }
+  }
+
+  populateArray(formArray: FormArray, data: string[], createControl: () => any) {
+    // Clear existing controls
+    while (formArray.length > 0) {
+      formArray.removeAt(0);
+    }
+
+    // Add controls with data
+    if (data && data.length > 0) {
+      data.forEach((value: string) => {
+        const control = createControl();
+        control.setValue(value);
+        formArray.push(control);
+      });
+    } else {
+      // Add at least one empty control
+      formArray.push(createControl());
     }
   }
 
@@ -219,7 +324,7 @@ export class SkillsetEvaluationComponent implements OnInit, OnDestroy {
     }
     
     // Prepare data for API
-    const evaluationData: SkillsetEvaluationData = {
+    const evaluationData: any = {
       name: formValue.name,
       email: formValue.email,
       position: formValue.position,
@@ -240,74 +345,104 @@ export class SkillsetEvaluationComponent implements OnInit, OnDestroy {
       }
     };
 
-    // Post to Learners API endpoint - api/Learners
-    console.log('Submitting skillset evaluation to api/Learners:', evaluationData);
+    // Determine if we're creating or updating
+    if (this.isEditMode && this.existingLearnerId) {
+      // Update existing record - PUT api/Learners/{id}
+      console.log('📝 Updating existing learner data, ID:', this.existingLearnerId);
+      this.updateLearner(this.existingLearnerId, evaluationData);
+    } else {
+      // Create new record - POST api/Learners
+      console.log('➕ Creating new learner record');
+      this.createLearner(evaluationData);
+    }
+  }
+
+  createLearner(evaluationData: any) {
     this.learnersService.createLearner(evaluationData).subscribe({
       next: (response) => {
         this.isLoading = false;
-        this.successMessage = 'Skillset evaluation submitted successfully!';
+        this.successMessage = 'Skillset evaluation created successfully!';
+        console.log('✅ Learner created:', response);
         
         setTimeout(() => {
           this.router.navigate(['/skillset-statistics']);
         }, 2000);
       },
       error: (error) => {
-        console.error('❌ Evaluation error occurred:', error);
-        console.error('Error details:', {
-          message: error.message,
-          status: error.status,
-          error: error.error
-        });
-        
-        this.isLoading = false;
-        this.errorMessage = error.message || 'An error occurred. Please try again.';
-        
-        // Clear any existing navigation timeout
-        if (this.navigationTimeout) {
-          clearTimeout(this.navigationTimeout);
-        }
-        
-        // Always navigate to skillset-statistics screen on error
-        console.log('⚠️ Error submitting skillset evaluation');
-        console.log('🔄 Navigating to /skillset-statistics in 1 second...');
-        
-        // Navigate immediately (reduced delay for better UX)
-        this.navigationTimeout = setTimeout(() => {
-          console.log('🚀 Executing navigation to /skillset-statistics');
-          try {
-            this.router.navigate(['/skillset-statistics']).then(
-              (success) => {
-                if (success) {
-                  console.log('✅ Successfully navigated to skillset-statistics page');
-                } else {
-                  console.error('❌ Navigation returned false, trying window.location');
-                  // Fallback: use window.location if router navigation fails
-                  window.location.href = `/skillset-statistics`;
-                }
-              },
-              (navError) => {
-                console.error('❌ Navigation promise rejected:', navError);
-                // Fallback: use window.location if router navigation fails
-                window.location.href = `/skillset-statistics`;
-              }
-            );
-          } catch (navError) {
-            console.error('❌ Navigation exception:', navError);
-            // Fallback: use window.location if router navigation fails
-            window.location.href = `/skillset-statistics`;
-          }
-        }, 1000); // Show error message for 1 second before navigating
-        
-        // Also try immediate navigation as backup (in case setTimeout fails)
-        setTimeout(() => {
-          const currentUrl = this.router.url;
-          if (currentUrl.includes('skillset-evaluation')) {
-            console.log('⚠️ Still on skillset-evaluation page, forcing navigation...');
-            window.location.href = `/skillset-statistics`;
-          }
-        }, 3000); // Backup navigation after 3 seconds
+        this.handleSubmitError(error);
       }
     });
+  }
+
+  updateLearner(id: number, evaluationData: any) {
+    this.learnersService.updateLearner(id, evaluationData).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        this.successMessage = 'Skillset evaluation updated successfully!';
+        console.log('✅ Learner updated:', response);
+        
+        setTimeout(() => {
+          this.router.navigate(['/skillset-statistics']);
+        }, 2000);
+      },
+      error: (error) => {
+        this.handleSubmitError(error);
+      }
+    });
+  }
+
+  handleSubmitError(error: any) {
+    console.error('❌ Evaluation error occurred:', error);
+    console.error('Error details:', {
+      message: error.message,
+      status: error.status,
+      error: error.error
+    });
+    
+    this.isLoading = false;
+    this.errorMessage = error.message || 'An error occurred. Please try again.';
+    
+    // Clear any existing navigation timeout
+    if (this.navigationTimeout) {
+      clearTimeout(this.navigationTimeout);
+    }
+    
+    // Always navigate to skillset-statistics screen on error
+    console.log('⚠️ Error submitting skillset evaluation');
+    console.log('🔄 Navigating to /skillset-statistics in 1 second...');
+    
+    // Navigate immediately (reduced delay for better UX)
+    this.navigationTimeout = setTimeout(() => {
+      console.log('🚀 Executing navigation to /skillset-statistics');
+      try {
+        this.router.navigate(['/skillset-statistics']).then(
+          (success) => {
+            if (success) {
+              console.log('✅ Successfully navigated to skillset-statistics page');
+            } else {
+              console.error('❌ Navigation returned false, trying window.location');
+              window.location.href = `/skillset-statistics`;
+            }
+          },
+          (navError) => {
+            console.error('❌ Navigation promise rejected:', navError);
+            window.location.href = `/skillset-statistics`;
+          }
+        );
+      } catch (navError) {
+        console.error('❌ Navigation exception:', navError);
+        window.location.href = `/skillset-statistics`;
+      }
+    }, 1000);
+    
+    // Also try immediate navigation as backup
+    setTimeout(() => {
+      const currentUrl = this.router.url;
+      if (currentUrl.includes('skillset-evaluation')) {
+        console.log('⚠️ Still on skillset-evaluation page, forcing navigation...');
+        window.location.href = `/skillset-statistics`;
+      }
+    }, 3000);
   }
 
   private markFormGroupTouched() {
