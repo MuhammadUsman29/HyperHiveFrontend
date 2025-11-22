@@ -57,7 +57,7 @@
       <div class="stat-card" *ngIf="statistics && statistics.gitHubProfile">
         <div class="card-header">
           <h3 class="card-title">GitHub Profile</h3>
-          <span class="score-badge" *ngIf="statistics.gitHubProfile && statistics.gitHubProfile.username">@{{ statistics.gitHubProfile.username }}</span>
+          <span class="score-badge" *ngIf="statistics.gitHubProfile && statistics.gitHubProfile.username">{{ '@' + statistics.gitHubProfile.username }}</span>
         </div>
         <div class="github-stats" *ngIf="statistics && statistics.gitHubProfile">
           <div class="stat-item" *ngIf="statistics.gitHubProfile.publicRepos !== undefined">

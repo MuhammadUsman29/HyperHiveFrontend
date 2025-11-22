@@ -1,0 +1,203 @@
+<app-header></app-header>
+
+<div class="growth-plan-container">
+  <div class="growth-plan-content">
+    <!-- Header Section -->
+    <div class="growth-plan-header">
+      <h1 class="page-title">My Growth Plan</h1>
+      <p class="page-subtitle">Personalized career development roadmap</p>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Generating your growth plan...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <div class="alert alert-error">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        {{ errorMessage }}
+      </div>
+      <button class="btn btn-primary" (click)="regeneratePlan()">Retry</button>
+    </div>
+
+    <!-- Growth Plan Content -->
+    <div class="growth-plan-grid" *ngIf="growthPlan && !isLoading">
+      <!-- Overview Card -->
+      <div class="plan-card overview-card">
+        <div class="card-icon">🎯</div>
+        <h2 class="learner-name">{{ growthPlan.learnerName }}</h2>
+        <div class="level-progression">
+          <span class="current-level">{{ growthPlan.currentLevel }}</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+          <span class="target-level">{{ growthPlan.targetLevel }}</span>
+        </div>
+        <div class="duration-badge">
+          {{ growthPlan.estimatedDurationMonths }} months
+        </div>
+        <p class="overview-text">{{ growthPlan.overview }}</p>
+        <div class="generated-info">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          Generated {{ formatDate(growthPlan.generatedAt) }}
+        </div>
+      </div>
+
+      <!-- Skill Gaps -->
+      <div class="plan-card full-width">
+        <h3 class="card-title">📊 Skill Gaps Analysis</h3>
+        <div class="skill-gaps-grid">
+          <div class="skill-gap-item" *ngFor="let gap of growthPlan.skillGaps">
+            <div class="skill-gap-header">
+              <h4 class="skill-name">{{ gap.skillName }}</h4>
+              <span class="priority-badge" [class]="getPriorityColor(gap.priority)">
+                {{ gap.priority }}
+              </span>
+            </div>
+            <div class="proficiency-bar">
+              <div class="proficiency-item">
+                <span class="proficiency-label">Current</span>
+                <span class="proficiency-value">{{ gap.currentProficiency }}</span>
+              </div>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+              <div class="proficiency-item">
+                <span class="proficiency-label">Target</span>
+                <span class="proficiency-value target">{{ gap.targetProficiency }}</span>
+              </div>
+            </div>
+            <p class="reasoning">{{ gap.reasoning }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Learning Phases -->
+      <div class="plan-card full-width">
+        <h3 class="card-title">📚 Learning Phases</h3>
+        <div class="phases-timeline">
+          <div class="phase-item" *ngFor="let phase of growthPlan.learningPhases">
+            <div class="phase-number">{{ phase.phaseNumber }}</div>
+            <div class="phase-content">
+              <div class="phase-header">
+                <h4 class="phase-title">{{ phase.title }}</h4>
+                <span class="phase-duration">{{ phase.durationWeeks }} weeks</span>
+              </div>
+              <p class="phase-description">{{ phase.description }}</p>
+              
+              <div class="phase-details">
+                <div class="detail-section">
+                  <h5 class="detail-title">Skills to Cover</h5>
+                  <div class="skill-tags">
+                    <span class="skill-tag" *ngFor="let skill of phase.skillsToCover">{{ skill }}</span>
+                  </div>
+                </div>
+
+                <div class="detail-section">
+                  <h5 class="detail-title">Learning Objectives</h5>
+                  <ul class="objective-list">
+                    <li *ngFor="let objective of phase.learningObjectives">{{ objective }}</li>
+                  </ul>
+                </div>
+
+                <div class="detail-section">
+                  <h5 class="detail-title">Practical Projects</h5>
+                  <ul class="project-list">
+                    <li *ngFor="let project of phase.practicalProjects">{{ project }}</li>
+                  </ul>
+                </div>
+
+                <div class="success-metrics">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>{{ phase.successMetrics }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommended Resources -->
+      <div class="plan-card full-width">
+        <h3 class="card-title">📖 Recommended Resources</h3>
+        <div class="resources-grid">
+          <div class="resource-item" *ngFor="let resource of growthPlan.recommendedResources">
+            <div class="resource-header">
+              <h4 class="resource-title">
+                <a [href]="resource.url" target="_blank" rel="noopener noreferrer">
+                  {{ resource.title }}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                </a>
+              </h4>
+              <div class="resource-meta">
+                <span class="resource-type">{{ resource.type }}</span>
+                <span class="resource-provider">{{ resource.provider }}</span>
+              </div>
+            </div>
+            <p class="resource-description">{{ resource.description }}</p>
+            <div class="resource-tags">
+              <span class="skill-tag small" *ngFor="let skill of resource.skillsCovered">{{ skill }}</span>
+            </div>
+            <div class="resource-footer">
+              <span class="difficulty-badge" [class]="getDifficultyColor(resource.difficulty)">
+                {{ resource.difficulty }}
+              </span>
+              <span class="duration-badge small">{{ resource.estimatedHours }}h</span>
+              <span class="free-badge" [class.is-free]="resource.isFree">
+                {{ resource.isFree ? 'Free' : 'Paid' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key Milestones -->
+      <div class="plan-card">
+        <h3 class="card-title">🏆 Key Milestones</h3>
+        <div class="milestones-list">
+          <div class="milestone-item" *ngFor="let milestone of growthPlan.keyMilestones; let i = index">
+            <div class="milestone-number">{{ i + 1 }}</div>
+            <span class="milestone-text">{{ milestone }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success Criteria -->
+      <div class="plan-card">
+        <h3 class="card-title">✅ Success Criteria</h3>
+        <p class="success-criteria-text">{{ growthPlan.successCriteria }}</p>
+        <button class="btn btn-primary btn-full" (click)="navigateToCourses()">
+          Start Learning Journey
+        </button>
+      </div>
+
+      <!-- Actions -->
+      <div class="plan-card actions-card">
+        <button class="btn btn-secondary btn-full" (click)="regeneratePlan()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          Regenerate Plan
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

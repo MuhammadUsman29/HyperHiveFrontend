@@ -23,6 +23,7 @@ export class QuizComponent implements OnInit {
   answers: { [questionId: number]: string } = {};
   showResults = false;
   quizResult: any = null;
+  learnerId: number = 0; // Store learner ID
 
   constructor(
     private fb: FormBuilder,
@@ -43,12 +44,12 @@ export class QuizComponent implements OnInit {
     this.errorMessage = '';
     
     // Get learner ID from token or route params
-    const learnerId = this.tokenService.getUserId() || 
+    this.learnerId = Number(this.tokenService.getUserId() || 
                      this.route.snapshot.params['learnerId'] || 
-                     2;
+                     2);
 
     const request: QuizGenerationRequest = {
-      learnerId: Number(learnerId),
+      learnerId: this.learnerId,
       quizType: 'Software engineer',
       difficulty: 'medium',
       numberOfQuestions: 10
@@ -159,9 +160,15 @@ export class QuizComponent implements OnInit {
       selectedAnswer: this.answers[Number(questionId)]
     }));
 
-    console.log('Submitting quiz:', { quizId: this.quiz.quizId, answers });
+    const submitPayload = {
+      quizId: this.quiz.quizId,
+      learnerId: this.learnerId,
+      answers: answers
+    };
 
-    this.quizService.submitQuiz(this.quiz.quizId, answers).subscribe({
+    console.log('Submitting quiz with payload:', submitPayload);
+
+    this.quizService.submitQuiz(this.quiz.quizId, this.learnerId, answers).subscribe({
       next: (result) => {
         console.log('Quiz submitted successfully:', result);
         this.quizResult = result;

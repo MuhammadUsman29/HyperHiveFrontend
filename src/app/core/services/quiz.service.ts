@@ -47,9 +47,10 @@ export class QuizService {
    * Submit quiz answers
    * Calls: POST api/Quiz/submit
    */
-  submitQuiz(quizId: number, answers: { questionId: number; selectedAnswer: string }[]): Observable<any> {
+  submitQuiz(quizId: number, learnerId: number, answers: { questionId: number; selectedAnswer: string }[]): Observable<any> {
     return this.apiService.post<any>('Quiz/submit', {
       quizId,
+      learnerId,
       answers
     });
   }

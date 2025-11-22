@@ -15,5 +15,6 @@ export const routes: Routes = [
   },
   { path: 'quiz', loadComponent: () => import('./pages/quiz/quiz.component').then(m => m.QuizComponent) },
   { path: 'quiz/:learnerId', loadComponent: () => import('./pages/quiz/quiz.component').then(m => m.QuizComponent) },
+  { path: 'growth-plan', loadComponent: () => import('./pages/growth-plan/growth-plan.component').then(m => m.GrowthPlanComponent) },
   { path: '**', redirectTo: '' }
 ];
