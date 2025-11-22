@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { GitHubService, GitHubDeveloperAnalysis } from '../../core/services/github.service';
 import { HeaderComponent } from '../../shared/components/header/header.component';
 
 export interface GitHubProfile {
@@ -47,6 +49,7 @@ export interface ProfileCompetencyData {
 })
 export class ProfileCompetencyComponent implements OnInit {
   competencyData: ProfileCompetencyData | null = null;
+  gitHubAnalysis: GitHubDeveloperAnalysis | null = null;
   isLoading = true;
   errorMessage = '';
   userName: string = '';
@@ -54,6 +57,7 @@ export class ProfileCompetencyComponent implements OnInit {
   constructor(
     private apiService: ApiService,
     private authService: AuthService,
+    private gitHubService: GitHubService,
     private router: Router
   ) {}
 
@@ -82,27 +86,46 @@ export class ProfileCompetencyComponent implements OnInit {
     this.errorMessage = '';
     
     // Hardcoded request data as specified
-    const requestData = {
+    const validationRequest = {
       learnerId: 2,
       gitHubUsername: "ali-akbar784"
     };
     
-    console.log('📡 Loading competency data from ProfileValidation/validate with data:', requestData);
-    this.apiService.post<ProfileCompetencyData>('ProfileValidation/validate', requestData).subscribe({
+    // GitHub analysis request
+    const currentDate = new Date();
+    const threeYearsAgo = new Date(currentDate.getFullYear() - 3, currentDate.getMonth(), currentDate.getDate());
+    
+    const gitHubRequest = {
+      owner: "ali-akbar784",
+      repository: "CleanArchitecture",
+      username: "ali-akbar784",
+      since: threeYearsAgo.toISOString(),
+      until: currentDate.toISOString()
+    };
+    
+    console.log('📡 Loading competency data and GitHub analysis...');
+    
+    // Load both APIs in parallel
+    forkJoin({
+      competency: this.apiService.post<ProfileCompetencyData>('ProfileValidation/validate', validationRequest),
+      github: this.gitHubService.analyzeDeveloper(gitHubRequest)
+    }).subscribe({
       next: (response) => {
-        console.log('✅ Competency data loaded successfully:', response);
-        console.log('📊 Response structure:', JSON.stringify(response, null, 2));
+        console.log('✅ All data loaded successfully:', response);
         
-        if (response && typeof response === 'object') {
-          this.competencyData = response as ProfileCompetencyData;
-        } else {
-          console.error('Unexpected response format:', response);
-          this.errorMessage = 'Invalid response format from server.';
+        if (response.competency && typeof response.competency === 'object') {
+          this.competencyData = response.competency as ProfileCompetencyData;
         }
+        
+        if (response.github && typeof response.github === 'object') {
+          this.gitHubAnalysis = response.github;
+          console.log('📊 GitHub Analysis:', this.gitHubAnalysis);
+        }
+        
         this.isLoading = false;
       },
       error: (error) => {
-        console.warn('⚠️ Competency API not available:', error);
+        console.warn('⚠️ Error loading data:', error);
         console.warn('Error details:', {
           status: error.status,
           message: error.message,
@@ -110,7 +133,7 @@ export class ProfileCompetencyComponent implements OnInit {
         });
         
         this.isLoading = false;
-        this.errorMessage = 'Unable to load competency data from server. Please try again later.';
+        this.errorMessage = 'Unable to load data from server. Please try again later.';
       }
     });
   }
@@ -156,8 +179,32 @@ export class ProfileCompetencyComponent implements OnInit {
     }
   }
 
-  navigateToCourses() {
-    this.router.navigate(['/courses']);
+  navigateToQuiz() {
+    this.router.navigate(['/quiz']);
+  }
+
+  // Heatmap helpers
+  getContributionLevel(percentage: number): string {
+    if (percentage >= 40) return 'level-4';
+    if (percentage >= 25) return 'level-3';
+    if (percentage >= 10) return 'level-2';
+    if (percentage > 0) return 'level-1';
+    return 'level-0';
+  }
+
+  getTopDomainAreas() {
+    if (!this.gitHubAnalysis?.domainAreas) return [];
+    return this.gitHubAnalysis.domainAreas.slice(0, 6);
+  }
+
+  getTopTechnologies() {
+    if (!this.gitHubAnalysis?.technologies) return [];
+    return this.gitHubAnalysis.technologies.slice(0, 6);
+  }
+
+  getTopLanguages() {
+    if (!this.gitHubAnalysis?.languages) return [];
+    return this.gitHubAnalysis.languages.slice(0, 5);
   }
 }
 

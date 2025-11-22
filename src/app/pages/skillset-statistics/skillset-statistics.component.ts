@@ -157,8 +157,8 @@ export class SkillsetStatisticsComponent implements OnInit {
     }
   }
 
-  navigateToCourses() {
-    this.router.navigate(['/courses']);
+  navigateToQuiz() {
+    this.router.navigate(['/quiz']);
   }
 }
 

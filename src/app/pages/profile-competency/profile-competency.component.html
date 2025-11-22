@@ -2,10 +2,10 @@
 
 <div class="competency-container">
   <div class="competency-content">
-    <!-- Test Header -->
+    <!-- Header Section -->
     <div class="competency-header">
       <h1 class="page-title">Profile Competency</h1>
-      <p class="page-subtitle">If you see this, the route is working!</p>
+      <p class="page-subtitle">Your skills validation and competency assessment</p>
     </div>
 
     <!-- Loading State -->
@@ -83,6 +83,93 @@
         </div>
         <p class="card-description" *ngIf="competencyData && competencyData.gitHubProfile && competencyData.gitHubProfile.bio">
           {{ competencyData.gitHubProfile.bio }}
+        </p>
+      </div>
+
+      <!-- GitHub Developer Analysis Heatmap Card -->
+      <div class="stat-card full-width heatmap-card" *ngIf="gitHubAnalysis">
+        <div class="card-header">
+          <h3 class="card-title">GitHub Developer Analysis</h3>
+          <span class="score-badge">{{ gitHubAnalysis.totalCommits }} commits</span>
+        </div>
+        
+        <!-- Summary Stats -->
+        <div class="analysis-summary">
+          <div class="summary-item">
+            <span class="summary-label">Pull Requests</span>
+            <span class="summary-value">{{ gitHubAnalysis.totalPullRequests }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Lines Added</span>
+            <span class="summary-value success">+{{ gitHubAnalysis.totalLinesAdded }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Lines Deleted</span>
+            <span class="summary-value error">-{{ gitHubAnalysis.totalLinesDeleted }}</span>
+          </div>
+        </div>
+
+        <!-- Domain Areas Heatmap -->
+        <div class="heatmap-section">
+          <h4 class="section-title">Domain Expertise Heatmap</h4>
+          <div class="heatmap-grid">
+            <div class="heatmap-item" 
+                 *ngFor="let area of getTopDomainAreas()"
+                 [class]="getContributionLevel(area.percentage)">
+              <div class="heatmap-label">{{ area.area }}</div>
+              <div class="heatmap-value">{{ area.contributionCount }}</div>
+              <div class="heatmap-percentage">{{ area.percentage.toFixed(1) }}%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Technologies Heatmap -->
+        <div class="heatmap-section">
+          <h4 class="section-title">Technology Stack Heatmap</h4>
+          <div class="heatmap-grid">
+            <div class="heatmap-item"
+                 *ngFor="let tech of getTopTechnologies()"
+                 [class]="getContributionLevel(tech.percentage)">
+              <div class="heatmap-label">{{ tech.technology }}</div>
+              <div class="heatmap-value">{{ tech.usageCount }}</div>
+              <div class="heatmap-percentage">{{ tech.percentage.toFixed(1) }}%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Languages Breakdown -->
+        <div class="languages-section">
+          <h4 class="section-title">Programming Languages</h4>
+          <div class="language-bars">
+            <div class="language-bar-item" *ngFor="let lang of getTopLanguages()">
+              <div class="language-info">
+                <span class="language-name">{{ lang.language }}</span>
+                <span class="language-percentage">{{ lang.percentage.toFixed(1) }}%</span>
+              </div>
+              <div class="language-progress-bar">
+                <div class="language-progress-fill" [style.width.%]="lang.percentage"></div>
+              </div>
+              <div class="language-stats">
+                <span>{{ lang.fileCount }} files</span>
+                <span>{{ lang.linesOfCode }} lines</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Concepts -->
+        <div class="concepts-section" *ngIf="gitHubAnalysis.concepts && gitHubAnalysis.concepts.length > 0">
+          <h4 class="section-title">Software Concepts</h4>
+          <div class="concept-tags">
+            <div class="concept-tag" *ngFor="let concept of gitHubAnalysis.concepts">
+              <span class="concept-name">{{ concept.concept }}</span>
+              <span class="concept-count">{{ concept.occurrenceCount }}</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="analysis-date" *ngIf="gitHubAnalysis.analysisDate">
+          Analysis performed: {{ formatDate(gitHubAnalysis.analysisDate) }}
         </p>
       </div>
 
@@ -175,8 +262,8 @@
             <div class="recommendation-text">{{ recommendation }}</div>
           </div>
         </div>
-        <button class="btn btn-primary btn-recommendations" (click)="navigateToCourses()">
-          Explore Recommended Courses
+        <button class="btn btn-primary btn-recommendations" (click)="navigateToQuiz()">
+          Generate Personalized Quiz
         </button>
       </div>
     </div>

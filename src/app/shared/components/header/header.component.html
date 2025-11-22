@@ -5,21 +5,11 @@
         <span class="logo-text">HyperHive</span>
       </a>
       <nav class="nav-menu" *ngIf="isAuthenticated">
-        <a routerLink="/courses" class="nav-link">Courses</a>
-        <a routerLink="/categories" class="nav-link">Categories</a>
-        <a routerLink="/instructors" class="nav-link">Instructors</a>
+        <a routerLink="/mentor-dashboard" class="nav-link">Mentor Dashboard</a>
       </nav>
     </div>
 
     <div class="header-right">
-      <a routerLink="/teach" class="header-link">Teach on HyperHive</a>
-      <a routerLink="/cart" class="header-link cart-link" *ngIf="isAuthenticated">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="9" cy="21" r="1"></circle>
-          <circle cx="20" cy="21" r="1"></circle>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-        </svg>
-      </a>
       <!-- Authenticated User -->
       <div class="user-menu" *ngIf="isAuthenticated">
         <span class="user-name" *ngIf="userName">{{ userName }}</span>
@@ -43,10 +33,7 @@
   <!-- Mobile Menu -->
   <div class="mobile-menu" [class.open]="isMenuOpen">
     <div *ngIf="isAuthenticated">
-      <a routerLink="/courses" class="mobile-nav-link">Courses</a>
-      <a routerLink="/categories" class="mobile-nav-link">Categories</a>
-      <a routerLink="/instructors" class="mobile-nav-link">Instructors</a>
-      <a routerLink="/teach" class="mobile-nav-link">Teach on HyperHive</a>
+      <a routerLink="/mentor-dashboard" class="mobile-nav-link">Mentor Dashboard</a>
     </div>
     <div class="mobile-menu-actions">
       <!-- Authenticated User -->

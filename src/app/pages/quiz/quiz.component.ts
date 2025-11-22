@@ -198,5 +198,9 @@ export class QuizComponent implements OnInit {
     if (score >= 40) return 'average';
     return 'needs-improvement';
   }
+
+  navigateToGrowthPlan() {
+    this.router.navigate(['/growth-plan']);
+  }
 }
 

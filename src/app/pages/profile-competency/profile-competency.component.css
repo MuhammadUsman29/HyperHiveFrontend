@@ -407,6 +407,226 @@
   margin-top: var(--spacing-md);
 }
 
+/* GitHub Analysis Heatmap Styles */
+.heatmap-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.analysis-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-md);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.summary-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.summary-value.success {
+  color: var(--success-color);
+}
+
+.summary-value.error {
+  color: var(--error-color);
+}
+
+/* Heatmap Grid */
+.heatmap-section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.heatmap-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  min-height: 100px;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.heatmap-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Heatmap levels with GitHub-style colors */
+.heatmap-item.level-0 {
+  background: #ebedf0;
+  color: #57606a;
+}
+
+.heatmap-item.level-1 {
+  background: #9be9a8;
+  color: #0e4429;
+}
+
+.heatmap-item.level-2 {
+  background: #40c463;
+  color: #0e4429;
+}
+
+.heatmap-item.level-3 {
+  background: #30a14e;
+  color: white;
+}
+
+.heatmap-item.level-4 {
+  background: #216e39;
+  color: white;
+}
+
+.heatmap-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+.heatmap-value {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+}
+
+.heatmap-percentage {
+  font-size: var(--font-size-xs);
+  opacity: 0.8;
+  margin-top: var(--spacing-xs);
+}
+
+/* Languages Section */
+.languages-section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.language-bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.language-bar-item {
+  background: var(--bg-secondary);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+}
+
+.language-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+.language-name {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.language-percentage {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.language-progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: var(--spacing-xs);
+}
+
+.language-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  border-radius: var(--radius-full);
+  transition: width 0.5s ease;
+}
+
+.language-stats {
+  display: flex;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* Concepts Section */
+.concepts-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.concept-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.concept-tag {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--primary-color);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.concept-name {
+  font-weight: 600;
+}
+
+.concept-count {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.analysis-date {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border-light);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  font-style: italic;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .competency-container {
@@ -427,6 +647,14 @@
   }
 
   .github-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .heatmap-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .analysis-summary {
     grid-template-columns: 1fr;
   }
 }

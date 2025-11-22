@@ -41,22 +41,6 @@
     </div>
   </section>
 
-  <!-- Featured Courses Section -->
-  <section class="courses-section">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-title">Featured Courses</h2>
-        <a routerLink="/courses" class="view-all-link">View all courses →</a>
-      </div>
-      <div class="courses-grid">
-        <app-course-card 
-          *ngFor="let course of featuredCourses" 
-          [course]="course"
-        ></app-course-card>
-      </div>
-    </div>
-  </section>
-
   <!-- Why Choose Us Section -->
   <section class="why-section">
     <div class="container">
