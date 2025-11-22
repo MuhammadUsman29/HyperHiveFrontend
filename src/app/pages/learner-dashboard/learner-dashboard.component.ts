@@ -20,10 +20,15 @@ interface CompetencyProfile {
   validatedAt: string;
 }
 
+interface DailyTask {
+  text: string;
+  completed: boolean;
+}
+
 interface DailyLearning {
   day: string;
   date: string;
-  tasks: string[];
+  tasks: DailyTask[];
   estimatedHours: number;
   completed: boolean;
 }
@@ -37,8 +42,8 @@ interface DailyLearning {
 })
 export class LearnerDashboardComponent implements OnInit {
   // Learner ID from token or hardcoded
-  learnerId = 2;
-  gitHubUsername = 'ali-akbar784';
+  learnerId: number = 2;
+  gitHubUsername: string = 'ali-akbar784';
   
   // Data from different APIs
   learnerData: LearnerData | null = null;
@@ -46,13 +51,13 @@ export class LearnerDashboardComponent implements OnInit {
   growthPlan: GrowthPlan | null = null;
   
   // Loading states
-  isLoading = true;
-  errorMessage = '';
+  isLoading: boolean = true;
+  errorMessage: string = '';
   
   // Computed metrics
-  overallProgress = 0;
-  completedMilestones = 0;
-  totalMilestones = 0;
+  overallProgress: number = 0;
+  completedMilestones: number = 0;
+  totalMilestones: number = 0;
   
   // Today's and Tomorrow's learning plans
   todayLearning: DailyLearning | null = null;
@@ -136,25 +141,41 @@ export class LearnerDashboardComponent implements OnInit {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    // Generate today's learning plan
+    // Generate today's learning plan with completion status
+    const todayTasks: DailyTask[] = currentPhase.learningObjectives.slice(0, 3).map((task, index) => ({
+      text: task,
+      completed: index < 1 // First task is completed (45% progress means ~1 out of 3 tasks done)
+    }));
+
     this.todayLearning = {
       day: 'Today',
       date: this.formatDateShort(today),
-      tasks: currentPhase.learningObjectives.slice(0, 3),
+      tasks: todayTasks,
       estimatedHours: 3,
       completed: false
     };
 
-    // Generate tomorrow's learning plan
+    console.log('Today\'s learning tasks:', this.todayLearning.tasks);
+
+    // Generate tomorrow's learning plan (all uncompleted)
+    const tomorrowTasksText = currentPhase.learningObjectives.slice(3, 6).length > 0 
+      ? currentPhase.learningObjectives.slice(3, 6)
+      : currentPhase.practicalProjects.slice(0, 3);
+    
+    const tomorrowTasks: DailyTask[] = tomorrowTasksText.map(task => ({
+      text: task,
+      completed: false
+    }));
+
     this.tomorrowLearning = {
       day: 'Tomorrow',
       date: this.formatDateShort(tomorrow),
-      tasks: currentPhase.learningObjectives.slice(3, 6).length > 0 
-        ? currentPhase.learningObjectives.slice(3, 6)
-        : currentPhase.practicalProjects.slice(0, 3),
+      tasks: tomorrowTasks,
       estimatedHours: 4,
       completed: false
     };
+
+    console.log('Tomorrow\'s learning tasks:', this.tomorrowLearning.tasks);
   }
 
   getValidationScoreColor(score: number | undefined): string {
@@ -246,13 +267,30 @@ export class LearnerDashboardComponent implements OnInit {
   }
 
   getTodayProgress(): number {
-    // Simulate progress for today's learning
-    return 45; // 45% completed
+    // Calculate progress based on completed tasks
+    if (!this.todayLearning || !this.todayLearning.tasks.length) return 0;
+    const completedCount = this.todayLearning.tasks.filter(t => t.completed).length;
+    return Math.round((completedCount / this.todayLearning.tasks.length) * 100);
   }
 
   getPhaseProgressPercentage(): number {
     if (!this.growthPlan || !this.growthPlan.learningPhases.length) return 0;
     // Simulate current phase progress
     return 35; // 35% of current phase completed
+  }
+
+  toggleTaskCompletion(task: DailyTask) {
+    task.completed = !task.completed;
+    // Recalculate overall progress if needed
+  }
+
+  getCompletedTasksCount(): number {
+    if (!this.todayLearning) return 0;
+    return this.todayLearning.tasks.filter(t => t.completed).length;
+  }
+
+  getTotalTasksCount(): number {
+    if (!this.todayLearning) return 0;
+    return this.todayLearning.tasks.length;
   }
 }

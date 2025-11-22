@@ -112,16 +112,21 @@
           <div class="progress-bar">
             <div class="progress-fill-bar" [style.width.%]="getTodayProgress()"></div>
           </div>
-          <span class="progress-text-sm">{{ getTodayProgress() }}% completed</span>
+          <span class="progress-text-sm">{{ getCompletedTasksCount() }}/{{ getTotalTasksCount() }} tasks completed ({{ getTodayProgress() }}%)</span>
         </div>
         <div class="learning-tasks">
           <h4 class="tasks-title">Today's Tasks</h4>
           <ul class="task-list">
-            <li *ngFor="let task of todayLearning.tasks" class="task-item">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-              </svg>
-              {{ task }}
+            <li *ngFor="let task of todayLearning.tasks" 
+                class="task-item" 
+                [class.completed]="task.completed"
+                (click)="toggleTaskCompletion(task)">
+              <div class="task-checkbox" [class.checked]="task.completed">
+                <svg *ngIf="task.completed" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span class="task-text">{{ task.text }}</span>
             </li>
           </ul>
         </div>
@@ -146,10 +151,9 @@
           <h4 class="tasks-title">Planned Tasks</h4>
           <ul class="task-list">
             <li *ngFor="let task of tomorrowLearning.tasks" class="task-item">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-              </svg>
-              {{ task }}
+              <div class="task-checkbox">
+              </div>
+              <span class="task-text">{{ task.text }}</span>
             </li>
           </ul>
         </div>
