@@ -1,0 +1,37 @@
+<div class="course-card" [routerLink]="['/courses', course.id]">
+  <div class="course-card-image" [style.background-image]="course.imageUrl ? 'url(' + course.imageUrl + ')' : 'linear-gradient(135deg, var(--primary-color), var(--secondary-color))'">
+    <div class="course-badge" *ngIf="course.category">
+      {{ course.category }}
+    </div>
+  </div>
+  <div class="course-card-content">
+    <h3 class="course-card-title">{{ course.title }}</h3>
+    <p class="course-card-instructor">{{ course.instructor }}</p>
+    
+    <div class="course-card-rating" *ngIf="course.rating">
+      <div class="rating-stars">
+        <span class="star filled" *ngFor="let star of getRatingStars(course.rating)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+        </span>
+      </div>
+      <span class="rating-value">{{ course.rating | number:'1.1-1' }}</span>
+      <span class="rating-count">({{ course.reviews | number }} reviews)</span>
+    </div>
+    
+    <div class="course-card-meta">
+      <span class="course-level" *ngIf="course.level">{{ course.level }}</span>
+      <span class="course-duration" *ngIf="course.duration">{{ course.duration }}</span>
+    </div>
+    
+    <div class="course-card-footer">
+      <div class="course-card-price">
+        <span class="price-current">${{ course.price | number:'1.0-0' }}</span>
+        <span class="price-original" *ngIf="course.originalPrice">${{ course.originalPrice | number:'1.0-0' }}</span>
+      </div>
+      <span class="course-students" *ngIf="course.students">{{ course.students | number }} students</span>
+    </div>
+  </div>
+</div>
+

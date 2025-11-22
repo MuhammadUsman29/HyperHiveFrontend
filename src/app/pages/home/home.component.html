@@ -1,0 +1,130 @@
+<app-header></app-header>
+
+<main class="home-page">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">Learn without limits</h1>
+        <p class="hero-subtitle">
+          Start, switch, or advance your career with thousands of courses, Professional Certificates, and degrees from world-class instructors.
+        </p>
+        <div class="hero-search">
+          <input 
+            type="text" 
+            class="hero-search-input" 
+            placeholder="What do you want to learn?"
+          />
+          <button class="btn btn-primary hero-search-btn">Search</button>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">10M+</span>
+            <span class="stat-label">Students</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">50K+</span>
+            <span class="stat-label">Courses</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">5K+</span>
+            <span class="stat-label">Instructors</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Section -->
+  <section class="categories-section">
+    <div class="container">
+      <h2 class="section-title">Explore Top Categories</h2>
+      <div class="categories-grid">
+        <div class="category-card" *ngFor="let category of categories">
+          <div class="category-icon">{{ category.icon }}</div>
+          <h3 class="category-name">{{ category.name }}</h3>
+          <p class="category-count">{{ category.count }} courses</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Courses Section -->
+  <section class="courses-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Featured Courses</h2>
+        <a routerLink="/courses" class="view-all-link">View all courses →</a>
+      </div>
+      <div class="courses-grid">
+        <app-course-card 
+          *ngFor="let course of featuredCourses" 
+          [course]="course"
+        ></app-course-card>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Choose Us Section -->
+  <section class="why-section">
+    <div class="container">
+      <h2 class="section-title">Why choose HyperHive?</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3 class="feature-title">Learn from Experts</h3>
+          <p class="feature-description">Get access to courses taught by industry professionals and experts in their fields.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3 class="feature-title">Learn Anywhere</h3>
+          <p class="feature-description">Access your courses on mobile, tablet, or desktop - learn on your schedule.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏆</div>
+          <h3 class="feature-title">Earn Certificates</h3>
+          <p class="feature-description">Complete courses and earn certificates to showcase your new skills.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💬</div>
+          <h3 class="feature-title">Community Support</h3>
+          <p class="feature-description">Join a community of learners and get help when you need it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4 class="footer-title">HyperHive</h4>
+        <p class="footer-text">The world's best online learning platform</p>
+      </div>
+      <div class="footer-section">
+        <h4 class="footer-title">Company</h4>
+        <a href="#" class="footer-link">About</a>
+        <a href="#" class="footer-link">Careers</a>
+        <a href="#" class="footer-link">Blog</a>
+      </div>
+      <div class="footer-section">
+        <h4 class="footer-title">Support</h4>
+        <a href="#" class="footer-link">Help Center</a>
+        <a href="#" class="footer-link">Contact Us</a>
+        <a href="#" class="footer-link">Privacy Policy</a>
+      </div>
+      <div class="footer-section">
+        <h4 class="footer-title">Connect</h4>
+        <a href="#" class="footer-link">Facebook</a>
+        <a href="#" class="footer-link">Twitter</a>
+        <a href="#" class="footer-link">LinkedIn</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 HyperHive. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+

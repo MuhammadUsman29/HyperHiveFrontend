@@ -1,0 +1,274 @@
+<app-header></app-header>
+
+<div class="evaluation-container">
+  <div class="evaluation-card">
+    <div class="evaluation-header">
+      <h1 class="evaluation-title">Skillset Evaluation</h1>
+      <p class="evaluation-subtitle">Help us understand your skills and learning preferences to create a personalized learning path</p>
+      <div class="header-actions">
+        <a routerLink="/profile-competency" class="btn btn-secondary btn-link">
+          View Profile Competency
+        </a>
+      </div>
+    </div>
+
+    <form [formGroup]="evaluationForm" (ngSubmit)="onSubmit()" class="evaluation-form">
+      <!-- Success Message -->
+      <div class="alert alert-success" *ngIf="successMessage">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        {{ successMessage }}
+      </div>
+
+      <!-- Error Message -->
+      <div class="alert alert-error" *ngIf="errorMessage">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Basic Information Section -->
+      <div class="form-section">
+        <h2 class="section-title">Basic Information</h2>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name" class="form-label">Full Name *</label>
+            <input type="text" id="name" formControlName="name" class="form-input" 
+                   [class.error]="f['name'].invalid && f['name'].touched" placeholder="John Doe" />
+            <span class="error-message" *ngIf="f['name'].invalid && f['name'].touched">Name is required</span>
+          </div>
+
+          <div class="form-group">
+            <label for="email" class="form-label">Email *</label>
+            <input type="email" id="email" formControlName="email" class="form-input" 
+                   [class.error]="f['email'].invalid && f['email'].touched" placeholder="john.doe@company.com" />
+            <span class="error-message" *ngIf="f['email'].invalid && f['email'].touched">
+              <span *ngIf="f['email'].errors?.['required']">Email is required</span>
+              <span *ngIf="f['email'].errors?.['email']">Please enter a valid email</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="position" class="form-label">Position *</label>
+            <input type="text" id="position" formControlName="position" class="form-input" 
+                   [class.error]="f['position'].invalid && f['position'].touched" placeholder="Software Engineer" />
+            <span class="error-message" *ngIf="f['position'].invalid && f['position'].touched">Position is required</span>
+          </div>
+
+          <div class="form-group">
+            <label for="department" class="form-label">Department *</label>
+            <input type="text" id="department" formControlName="department" class="form-input" 
+                   [class.error]="f['department'].invalid && f['department'].touched" placeholder="Engineering" />
+            <span class="error-message" *ngIf="f['department'].invalid && f['department'].touched">Department is required</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="joinedDate" class="form-label">Joined Date *</label>
+            <input type="date" id="joinedDate" formControlName="joinedDate" class="form-input" 
+                   [class.error]="f['joinedDate'].invalid && f['joinedDate'].touched" />
+            <span class="error-message" *ngIf="f['joinedDate'].invalid && f['joinedDate'].touched">Joined date is required</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="bio" class="form-label">Bio *</label>
+          <textarea id="bio" formControlName="bio" class="form-textarea" rows="3" 
+                    [class.error]="f['bio'].invalid && f['bio'].touched" 
+                    placeholder="Tell us about yourself..."></textarea>
+          <span class="error-message" *ngIf="f['bio'].invalid && f['bio'].touched">Bio is required</span>
+        </div>
+      </div>
+
+      <!-- AI Profile Section -->
+      <div class="form-section" formGroupName="aiProfile">
+        <h2 class="section-title">Learning Profile</h2>
+
+        <!-- Skills -->
+        <div class="form-group">
+          <label class="form-label">Skills *</label>
+          <div formArrayName="skills">
+            <div *ngFor="let skill of skillsArray.controls; let i = index" class="array-item">
+              <input type="text" [formControlName]="i" class="form-input" placeholder="e.g., C#, React, SQL" />
+              <button type="button" class="btn-remove" (click)="removeSkill(i)" *ngIf="skillsArray.length > 1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button type="button" class="btn-add" (click)="addSkill()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Skill
+          </button>
+        </div>
+
+        <!-- Interests -->
+        <div class="form-group">
+          <label class="form-label">Interests *</label>
+          <div formArrayName="interests">
+            <div *ngFor="let interest of interestsArray.controls; let i = index" class="array-item">
+              <input type="text" [formControlName]="i" class="form-input" placeholder="e.g., Cloud Computing, AI/ML" />
+              <button type="button" class="btn-remove" (click)="removeInterest(i)" *ngIf="interestsArray.length > 1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button type="button" class="btn-add" (click)="addInterest()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Interest
+          </button>
+        </div>
+
+        <!-- Goals -->
+        <div class="form-group">
+          <label class="form-label">Learning Goals *</label>
+          <div formArrayName="goals">
+            <div *ngFor="let goal of goalsArray.controls; let i = index" class="array-item">
+              <input type="text" [formControlName]="i" class="form-input" placeholder="e.g., Learn System Design" />
+              <button type="button" class="btn-remove" (click)="removeGoal(i)" *ngIf="goalsArray.length > 1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button type="button" class="btn-add" (click)="addGoal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Goal
+          </button>
+        </div>
+
+        <!-- Learning Preferences Row -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="currentLevel" class="form-label">Current Level *</label>
+            <select id="currentLevel" formControlName="currentLevel" class="form-select" 
+                    [class.error]="aiProfile['currentLevel'].invalid && aiProfile['currentLevel'].touched">
+              <option *ngFor="let level of currentLevels" [value]="level">{{ level | titlecase }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="learningStyle" class="form-label">Learning Style *</label>
+            <select id="learningStyle" formControlName="learningStyle" class="form-select" 
+                    [class.error]="aiProfile['learningStyle'].invalid && aiProfile['learningStyle'].touched">
+              <option *ngFor="let style of learningStyles" [value]="style">{{ style | titlecase }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="availableHoursPerWeek" class="form-label">Available Hours/Week *</label>
+            <input type="number" id="availableHoursPerWeek" formControlName="availableHoursPerWeek" 
+                   class="form-input" min="1" max="40" 
+                   [class.error]="aiProfile['availableHoursPerWeek'].invalid && aiProfile['availableHoursPerWeek'].touched" />
+            <span class="error-message" *ngIf="aiProfile['availableHoursPerWeek'].invalid && aiProfile['availableHoursPerWeek'].touched">
+              Please enter hours between 1-40
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="preferredLearningTime" class="form-label">Preferred Learning Time *</label>
+            <select id="preferredLearningTime" formControlName="preferredLearningTime" class="form-select" 
+                    [class.error]="aiProfile['preferredLearningTime'].invalid && aiProfile['preferredLearningTime'].touched">
+              <option *ngFor="let time of learningTimes" [value]="time">{{ time | titlecase }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="yearsOfExperience" class="form-label">Years of Experience *</label>
+          <input type="text" id="yearsOfExperience" formControlName="yearsOfExperience" class="form-input" 
+                 [class.error]="aiProfile['yearsOfExperience'].invalid && aiProfile['yearsOfExperience'].touched" 
+                 placeholder="e.g., 3" />
+          <span class="error-message" *ngIf="aiProfile['yearsOfExperience'].invalid && aiProfile['yearsOfExperience'].touched">
+            Years of experience is required
+          </span>
+        </div>
+
+        <!-- Preferred Topics -->
+        <div class="form-group">
+          <label class="form-label">Preferred Topics *</label>
+          <div formArrayName="preferredTopics">
+            <div *ngFor="let topic of preferredTopicsArray.controls; let i = index" class="array-item">
+              <input type="text" [formControlName]="i" class="form-input" placeholder="e.g., Microservices Architecture" />
+              <button type="button" class="btn-remove" (click)="removeTopic(i)" *ngIf="preferredTopicsArray.length > 1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button type="button" class="btn-add" (click)="addTopic()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Topic
+          </button>
+        </div>
+
+        <!-- Weak Areas -->
+        <div class="form-group">
+          <label class="form-label">Weak Areas *</label>
+          <div formArrayName="weakAreas">
+            <div *ngFor="let area of weakAreasArray.controls; let i = index" class="array-item">
+              <input type="text" [formControlName]="i" class="form-input" placeholder="e.g., System Design" />
+              <button type="button" class="btn-remove" (click)="removeWeakArea(i)" *ngIf="weakAreasArray.length > 1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button type="button" class="btn-add" (click)="addWeakArea()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Weak Area
+          </button>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn btn-primary btn-submit" [disabled]="isLoading || evaluationForm.invalid">
+        <span *ngIf="!isLoading">Submit Evaluation</span>
+        <span *ngIf="isLoading" class="loading">
+          <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+          </svg>
+          Submitting...
+        </span>
+      </button>
+    </form>
+  </div>
+</div>
+

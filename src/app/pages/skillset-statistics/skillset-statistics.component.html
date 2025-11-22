@@ -1,0 +1,177 @@
+<app-header></app-header>
+
+<div class="statistics-container">
+  <div class="statistics-content">
+    <!-- Header Section -->
+    <div class="statistics-header">
+      <h1 class="page-title">Competency Profile</h1>
+      <p class="page-subtitle">Your current skills assessment and performance metrics</p>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading your statistics...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <div class="alert alert-error">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        {{ errorMessage }}
+      </div>
+    </div>
+
+    <!-- Statistics Content -->
+    <div class="statistics-grid" *ngIf="statistics && !isLoading">
+      <!-- Validation Score Card -->
+      <div class="stat-card overall-card" *ngIf="statistics && statistics.validationScore !== undefined && statistics.validationScore !== null">
+        <h2 class="card-title">Validation Score</h2>
+        <div class="overall-score">
+          <div class="score-circle" [class]="'score-' + getScoreColor(statistics.validationScore || 0)">
+            <span class="score-value">{{ statistics.validationScore }}</span>
+            <span class="score-label">Score</span>
+          </div>
+        </div>
+        <div class="score-breakdown">
+          <div class="score-item" *ngIf="statistics && statistics.validationLevel">
+            <span class="score-name">Validation Level</span>
+            <span class="score-number" [class]="'score-' + getValidationLevelColor(statistics.validationLevel || '')">
+              {{ statistics.validationLevel }}
+            </span>
+          </div>
+          <div class="score-item" *ngIf="statistics && statistics.skillsComparison && statistics.skillsComparison.matchPercentage !== undefined && statistics.skillsComparison.matchPercentage !== null">
+            <span class="score-name">Match Percentage</span>
+            <span class="score-number" [class]="'score-' + getScoreColor(statistics.skillsComparison.matchPercentage || 0)">
+              {{ statistics.skillsComparison.matchPercentage }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- GitHub Profile Card -->
+      <div class="stat-card" *ngIf="statistics && statistics.gitHubProfile">
+        <div class="card-header">
+          <h3 class="card-title">GitHub Profile</h3>
+          <span class="score-badge" *ngIf="statistics.gitHubProfile && statistics.gitHubProfile.username">@{{ statistics.gitHubProfile.username }}</span>
+        </div>
+        <div class="github-stats" *ngIf="statistics && statistics.gitHubProfile">
+          <div class="stat-item" *ngIf="statistics.gitHubProfile.publicRepos !== undefined">
+            <span class="stat-label">Public Repos</span>
+            <span class="stat-value">{{ statistics.gitHubProfile.publicRepos }}</span>
+          </div>
+          <div class="stat-item" *ngIf="statistics.gitHubProfile.followers !== undefined">
+            <span class="stat-label">Followers</span>
+            <span class="stat-value">{{ statistics.gitHubProfile.followers }}</span>
+          </div>
+          <div class="stat-item" *ngIf="statistics.gitHubProfile.following !== undefined">
+            <span class="stat-label">Following</span>
+            <span class="stat-value">{{ statistics.gitHubProfile.following }}</span>
+          </div>
+          <div class="stat-item" *ngIf="statistics.gitHubProfile.totalCommits !== undefined">
+            <span class="stat-label">Total Commits</span>
+            <span class="stat-value">{{ statistics.gitHubProfile.totalCommits }}</span>
+          </div>
+          <div class="stat-item" *ngIf="statistics.gitHubProfile.yearsActive !== undefined">
+            <span class="stat-label">Years Active</span>
+            <span class="stat-value">{{ statistics.gitHubProfile.yearsActive }}</span>
+          </div>
+        </div>
+        <p class="card-description" *ngIf="statistics && statistics.gitHubProfile && statistics.gitHubProfile.bio">
+          {{ statistics.gitHubProfile.bio }}
+        </p>
+      </div>
+
+      <!-- Skills Comparison Card -->
+      <div class="stat-card" *ngIf="statistics && statistics.skillsComparison">
+        <div class="card-header">
+          <h3 class="card-title">Skills Comparison</h3>
+          <span class="score-badge" *ngIf="statistics.skillsComparison && statistics.skillsComparison.matchPercentage !== undefined" 
+                [class]="'badge-' + getScoreColor(statistics.skillsComparison.matchPercentage || 0)">
+            {{ statistics.skillsComparison.matchPercentage }}% Match
+          </span>
+        </div>
+        <div class="skills-comparison">
+          <div class="comparison-section" *ngIf="statistics.skillsComparison && statistics.skillsComparison.matchedSkills && statistics.skillsComparison.matchedSkills.length > 0">
+            <h4 class="section-title">Matched Skills</h4>
+            <div class="skill-tags">
+              <span class="skill-tag matched" *ngFor="let skill of statistics.skillsComparison.matchedSkills">
+                {{ skill }}
+              </span>
+            </div>
+          </div>
+          <div class="comparison-section" *ngIf="statistics.skillsComparison && statistics.skillsComparison.unverifiedSkills && statistics.skillsComparison.unverifiedSkills.length > 0">
+            <h4 class="section-title">Unverified Skills</h4>
+            <div class="skill-tags">
+              <span class="skill-tag unverified" *ngFor="let skill of statistics.skillsComparison.unverifiedSkills">
+                {{ skill }}
+              </span>
+            </div>
+          </div>
+          <div class="comparison-section" *ngIf="statistics.skillsComparison && statistics.skillsComparison.additionalGitHubSkills && statistics.skillsComparison.additionalGitHubSkills.length > 0">
+            <h4 class="section-title">Additional GitHub Skills</h4>
+            <div class="skill-tags">
+              <span class="skill-tag additional" *ngFor="let skill of statistics.skillsComparison.additionalGitHubSkills">
+                {{ skill }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Languages & Topics -->
+      <div class="stat-card full-width" *ngIf="statistics && statistics.gitHubProfile">
+        <h3 class="card-title">GitHub Activity</h3>
+        <div class="github-activity">
+          <div class="activity-section" *ngIf="statistics.gitHubProfile && statistics.gitHubProfile.topLanguages && statistics.gitHubProfile.topLanguages.length > 0">
+            <h4 class="section-title">Top Languages</h4>
+            <div class="skill-tags">
+              <span class="skill-tag language" *ngFor="let lang of statistics.gitHubProfile.topLanguages">
+                {{ lang }}
+              </span>
+            </div>
+          </div>
+          <div class="activity-section" *ngIf="statistics.gitHubProfile && statistics.gitHubProfile.topicInterests && statistics.gitHubProfile.topicInterests.length > 0">
+            <h4 class="section-title">Topic Interests</h4>
+            <div class="skill-tags">
+              <span class="skill-tag topic" *ngFor="let topic of statistics.gitHubProfile.topicInterests">
+                {{ topic }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Analysis -->
+      <div class="stat-card full-width" *ngIf="statistics && statistics.aiAnalysis">
+        <h3 class="card-title">AI Analysis</h3>
+        <div class="ai-analysis">
+          <p class="analysis-text">{{ statistics.aiAnalysis }}</p>
+          <div class="validated-info" *ngIf="statistics.validatedAt">
+            <span class="validated-label">Validated at:</span>
+            <span class="validated-date">{{ formatDate(statistics.validatedAt) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="stat-card full-width" *ngIf="statistics && statistics.recommendations && statistics.recommendations.length > 0">
+        <h3 class="card-title">Recommendations</h3>
+        <div class="recommendations-list">
+          <div class="recommendation-item" *ngFor="let recommendation of statistics.recommendations; let i = index">
+            <div class="recommendation-number">{{ i + 1 }}</div>
+            <div class="recommendation-text">{{ recommendation }}</div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-recommendations" (click)="navigateToCourses()">
+          Explore Recommended Courses
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

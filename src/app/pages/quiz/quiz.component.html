@@ -1,0 +1,168 @@
+<app-header></app-header>
+
+<div class="quiz-container">
+  <div class="quiz-content">
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Generating your quiz...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <div class="alert alert-error">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        {{ errorMessage }}
+      </div>
+      <button class="btn btn-primary" (click)="generateQuiz()">Try Again</button>
+    </div>
+
+    <!-- Quiz Content -->
+    <div class="quiz-wrapper" *ngIf="quiz && !isLoading && !showResults">
+      <!-- Quiz Header -->
+      <div class="quiz-header">
+        <h1 class="quiz-title">{{ quiz.title }}</h1>
+        <div class="quiz-meta">
+          <span class="question-count">{{ getAnsweredCount() }} / {{ getTotalQuestions() }} answered</span>
+          <span class="question-number">Question {{ currentQuestionIndex + 1 }} of {{ getTotalQuestions() }}</span>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="((currentQuestionIndex + 1) / getTotalQuestions()) * 100"></div>
+        </div>
+      </div>
+
+      <!-- Question Navigation Dots -->
+      <div class="question-dots">
+        <button
+          *ngFor="let question of quiz.questions; let i = index"
+          class="question-dot"
+          [class.active]="i === currentQuestionIndex"
+          [class.answered]="answers[question.questionId]"
+          [class.current]="i === currentQuestionIndex"
+          (click)="goToQuestion(i)"
+          [title]="'Question ' + (i + 1)"
+        >
+          {{ i + 1 }}
+        </button>
+      </div>
+
+      <!-- Current Question -->
+      <form [formGroup]="quizForm" class="quiz-form">
+        <div class="question-card" *ngIf="getCurrentQuestion()">
+          <div class="question-header">
+            <h2 class="question-text">{{ getCurrentQuestion()?.question }}</h2>
+            <span class="question-type">{{ getCurrentQuestion()?.type | titlecase }}</span>
+          </div>
+
+          <div class="options-list">
+            <label
+              *ngFor="let option of getCurrentQuestionOptions()"
+              class="option-item"
+              [class.selected]="isAnswerSelected(getCurrentQuestion()!.questionId, option)"
+            >
+              <input
+                type="radio"
+                [formControlName]="'question_' + getCurrentQuestion()?.questionId"
+                [value]="option"
+                (change)="selectAnswer(getCurrentQuestion()!.questionId, option)"
+                [checked]="isAnswerSelected(getCurrentQuestion()!.questionId, option)"
+              />
+              <span class="option-text">{{ option }}</span>
+              <span class="option-check" *ngIf="isAnswerSelected(getCurrentQuestion()!.questionId, option)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="quiz-navigation">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="previousQuestion()"
+            [disabled]="currentQuestionIndex === 0"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            Previous
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="nextQuestion()"
+            *ngIf="currentQuestionIndex < getTotalQuestions() - 1"
+            [disabled]="!getSelectedAnswer(getCurrentQuestion()!.questionId)"
+          >
+            Next
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-primary btn-submit"
+            (click)="submitQuiz()"
+            *ngIf="currentQuestionIndex === getTotalQuestions() - 1"
+            [disabled]="!isAllAnswered() || isSubmitting"
+          >
+            <span *ngIf="!isSubmitting">Submit Quiz</span>
+            <span *ngIf="isSubmitting" class="loading">
+              <svg class="spinner-small" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              Submitting...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Results Page -->
+    <div class="results-wrapper" *ngIf="showResults && quizResult">
+      <div class="results-header">
+        <h1 class="results-title">Quiz Results</h1>
+        <p class="results-subtitle">Great job completing the quiz!</p>
+      </div>
+
+      <div class="results-content">
+        <div class="result-card" *ngIf="quizResult.score !== undefined">
+          <div class="score-circle-large" [class]="'score-' + getScoreColor(quizResult.score)">
+            <span class="score-value-large">{{ quizResult.score }}</span>
+            <span class="score-percent">%</span>
+          </div>
+          <h3 class="score-label">Your Score</h3>
+        </div>
+
+        <div class="result-details" *ngIf="quizResult.correctAnswers !== undefined">
+          <div class="result-stat">
+            <span class="stat-label">Correct Answers</span>
+            <span class="stat-value correct">{{ quizResult.correctAnswers }} / {{ getTotalQuestions() }}</span>
+          </div>
+          <div class="result-stat" *ngIf="quizResult.incorrectAnswers !== undefined">
+            <span class="stat-label">Incorrect Answers</span>
+            <span class="stat-value incorrect">{{ quizResult.incorrectAnswers }}</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-large" (click)="restartQuiz()">
+          Take Another Quiz
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
